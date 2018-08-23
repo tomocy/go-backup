@@ -22,8 +22,7 @@ func main() {
 	db.open(*dbPath)
 	defer db.close()
 
-	args := flag.Args()
-	subCmd := strings.ToLower(args[0])
+	subCmd := strings.ToLower(flag.Args()[0])
 	switch subCmd {
 	case "list":
 		listMonitoredFiles(db)
