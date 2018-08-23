@@ -12,9 +12,13 @@ const defaultHash = "not hashed yet"
 type db interface {
 	open(url string) error
 	close()
-	getFileList() ([]*monitoredFile, error)
-	addFile(file monitoredFile) error
-	removeFile(file monitoredFile) error
+	fileList() ([]*monitoredFile, error)
+	addFiles(fileNames ...string) error
+	removeFiles(fileNames ...string) error
+}
+
+func newDB() db {
+	return newFileDB()
 }
 
 type fileDB struct {
@@ -38,7 +42,7 @@ func (db *fileDB) close() {
 	db.session.Close()
 }
 
-func (db fileDB) getFileList() ([]*monitoredFile, error) {
+func (db fileDB) fileList() ([]*monitoredFile, error) {
 	files := make([]*monitoredFile, 0)
 	fileCollection, err := db.session.C(db.columnName)
 	if err != nil {
@@ -59,7 +63,7 @@ func (db fileDB) getFileList() ([]*monitoredFile, error) {
 	return files, nil
 }
 
-func (db fileDB) addFile(fileNames ...string) error {
+func (db fileDB) addFiles(fileNames ...string) error {
 	fileCollection, err := db.session.C(db.columnName)
 	if err != nil {
 		return err
