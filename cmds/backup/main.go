@@ -11,13 +11,13 @@ import (
 	"github.com/matryer/filedb"
 )
 
-type path struct {
-	Path string
-	Hash string
+type monitoredFile struct {
+	path string
+	hash string
 }
 
-func (p path) String() string {
-	return fmt.Sprintf("%s [%s]", p.Path, p.Hash)
+func (f monitoredFile) String() string {
+	return fmt.Sprintf("%s [%s]", f.path, f.hash)
 }
 
 func main() {
@@ -49,13 +49,13 @@ func main() {
 	switch subCmd {
 	case "list":
 		paths.ForEach(func(i int, data []byte) bool {
-			var path path
-			if err := json.Unmarshal(data, &path); err != nil {
+			var file monitoredFile
+			if err := json.Unmarshal(data, &file); err != nil {
 				fatalErr = err
 				return true
 			}
 
-			fmt.Printf("= %s\n", path)
+			fmt.Printf("= %s\n", file)
 			return false
 		})
 	case "add":
@@ -65,9 +65,9 @@ func main() {
 			return
 		}
 		for _, newPath := range newPaths {
-			pathJSON := &path{
-				Path: newPath,
-				Hash: "not hashed yet",
+			pathJSON := &monitoredFile{
+				path: newPath,
+				hash: "not hashed yet",
 			}
 			if err := paths.InsertJSON(pathJSON); err != nil {
 				fatalErr = err
@@ -78,15 +78,15 @@ func main() {
 		}
 	case "remove":
 		paths.RemoveEach(func(i int, data []byte) (bool, bool) {
-			var path path
-			if err := json.Unmarshal(data, &path); err != nil {
+			var file monitoredFile
+			if err := json.Unmarshal(data, &file); err != nil {
 				fatalErr = err
 				return false, true
 			}
 
 			pathsToBeRemoved := flag.Args()[1:]
 			for _, pathToBeRemoved := range pathsToBeRemoved {
-				if pathToBeRemoved == path.Path {
+				if pathToBeRemoved == file.path {
 					return true, false
 				}
 			}
