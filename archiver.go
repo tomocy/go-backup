@@ -15,44 +15,56 @@ type Archiver interface {
 var ZIP Archiver = new(zipper)
 
 type zipper struct {
+	writer *zip.Writer
 }
 
 func (z zipper) Archive(src, dest string) error {
-	if err := os.MkdirAll(filepath.Dir(dest), 0777); err != nil {
-		return err
-	}
-	out, err := os.Create(dest)
+	destFile, err := createDestinationFile(dest)
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer destFile.Close()
 
-	w := zip.NewWriter(out)
-	defer w.Close()
+	z.writer = zip.NewWriter(destFile)
+	defer z.writer.Close()
 
 	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
 		}
-
 		if err != nil {
 			return err
 		}
 
-		in, err := os.Open(path)
-		if err != nil {
+		if err := z.archive(path); err != nil {
 			return err
 		}
-		defer in.Close()
-
-		f, err := w.Create(path)
-		if err != nil {
-			return err
-		}
-		io.Copy(f, in)
-
 		return nil
 	})
+}
+
+func createDestinationFile(dest string) (*os.File, error) {
+	if err := os.MkdirAll(filepath.Dir(dest), 0777); err != nil {
+		return nil, err
+	}
+
+	return os.Create(dest)
+}
+
+func (z zipper) archive(src string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	writer, err := z.writer.Create(src)
+	if err != nil {
+		return err
+	}
+
+	io.Copy(writer, srcFile)
+	return nil
 }
 
 func (z zipper) Extension() string {
