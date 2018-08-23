@@ -12,7 +12,10 @@ func main() {
 	flag.Parse()
 
 	db := newDB()
-	db.open(*dbPath)
+	if err := db.open(*dbPath); err != nil {
+		log.Println(err)
+		return
+	}
 	defer db.close()
 
 	subCmd := strings.ToLower(flag.Arg(0))
