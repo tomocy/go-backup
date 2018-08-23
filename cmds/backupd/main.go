@@ -30,7 +30,7 @@ func main() {
 
 	dest := flag.String("dest", "./archive", "the path to folder backup file is archived")
 	dbPath := flag.String("db", "./db", "the path to db")
-	interval := flag.Duration("interval", 10, "the interval of backup (unit: second)")
+	interval := flag.Duration("interval", 10, "the interval of backup")
 	flag.Parse()
 
 	monitor := &backup.Monitor{
