@@ -17,14 +17,14 @@ func init() {
 }
 
 type Hasher interface {
-	HashDir(path string) (string, error)
+	Hash(path string) (string, error)
 }
 
 type md5 struct {
 	hasher hash.Hash
 }
 
-func (m md5) HashDir(path string) (string, error) {
+func (m md5) Hash(path string) (string, error) {
 	if err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err

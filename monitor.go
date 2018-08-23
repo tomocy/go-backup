@@ -15,7 +15,7 @@ type Monitor struct {
 func (m *Monitor) MonitorAndArchive() (int, error) {
 	backupCnt := 0
 	for path, lastHash := range m.Hashs {
-		newHash, err := MD5.HashDir(path)
+		newHash, err := MD5.Hash(path)
 		if err != nil {
 			return backupCnt, err
 		}
