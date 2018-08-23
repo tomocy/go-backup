@@ -3,10 +3,10 @@ package main
 import "fmt"
 
 type monitoredFile struct {
-	path string
-	hash string
+	Path string
+	Hash string
 }
 
 func (f monitoredFile) String() string {
-	return fmt.Sprintf("%s [%s]", f.path, f.hash)
+	return fmt.Sprintf("%s [%s]", f.Path, f.Hash)
 }

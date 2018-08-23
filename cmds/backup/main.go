@@ -32,9 +32,13 @@ func listMonitoredFiles(db db) {
 		log.Printf("could not get file list: %s\n", err)
 		return
 	}
+	if len(files) < 1 {
+		fmt.Println("no files to be monitored")
+		return
+	}
 
 	for _, file := range files {
-		fmt.Printf("- %s", file)
+		fmt.Printf("= %s\n", file)
 	}
 }
 
@@ -44,11 +48,8 @@ func addFileToMonitoredFileList(db db) {
 		log.Println("nothing specified, nothing added")
 		return
 	}
-	db.addFiles(fileNames...)
 
-	for _, fileName := range fileNames {
-		fmt.Printf("+ %s", fileName)
-	}
+	db.addFiles(fileNames...)
 }
 
 func removeMonitoredFiles(db db) {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/matryer/filedb"
@@ -71,14 +72,16 @@ func (db fileDB) addFiles(fileNames ...string) error {
 
 	for _, fileName := range fileNames {
 		file := &monitoredFile{
-			path: fileName,
-			hash: defaultHash,
+			Path: fileName,
+			Hash: defaultHash,
 		}
 
 		if err := fileCollection.InsertJSON(file); err != nil {
 			log.Printf("filedb could not insert file into db: %s\n", err)
 			continue
 		}
+
+		fmt.Printf("+ %s\n", file)
 	}
 
 	return nil
@@ -98,7 +101,8 @@ func (db fileDB) removeFiles(fileNames ...string) error {
 		}
 
 		for _, fileName := range fileNames {
-			if fileName == file.path {
+			if fileName == file.Path {
+				fmt.Printf("- %s\n", file)
 				return true, false
 			}
 		}
