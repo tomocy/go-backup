@@ -88,7 +88,7 @@ func main() {
 
 func check(m *backup.Monitor, col *filedb.C) {
 	log.Println("check backup")
-	backupCnt, err := m.Now()
+	backupCnt, err := m.MonitorAndArchive()
 	if err != nil {
 		log.Panicf("faild to backup: %s\n", err)
 	}

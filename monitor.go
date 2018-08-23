@@ -12,7 +12,7 @@ type Monitor struct {
 	Dest     string
 }
 
-func (m *Monitor) Now() (int, error) {
+func (m *Monitor) MonitorAndArchive() (int, error) {
 	backupCnt := 0
 	for path, lastHash := range m.Hashs {
 		newHash, err := MD5.HashDir(path)
@@ -23,7 +23,7 @@ func (m *Monitor) Now() (int, error) {
 			continue
 		}
 
-		if err := m.act(path); err != nil {
+		if err := m.archive(path); err != nil {
 			return backupCnt, err
 		}
 		m.Hashs[path] = newHash
@@ -33,7 +33,7 @@ func (m *Monitor) Now() (int, error) {
 	return backupCnt, nil
 }
 
-func (m Monitor) act(path string) error {
+func (m Monitor) archive(path string) error {
 	dirName := filepath.Base(path)
 	fileName := fmt.Sprintf("%d.%s", time.Now().UnixNano(), m.Archiver.Extension())
 	return m.Archiver.Archive(path, filepath.Join(m.Dest, dirName, fileName))
