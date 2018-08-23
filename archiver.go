@@ -9,6 +9,7 @@ import (
 
 type Archiver interface {
 	Archive(src, dest string) error
+	Extension() string
 }
 
 var ZIP Archiver = new(zipper)
@@ -52,4 +53,8 @@ func (z zipper) Archive(src, dest string) error {
 
 		return nil
 	})
+}
+
+func (z zipper) Extension() string {
+	return "zip"
 }
