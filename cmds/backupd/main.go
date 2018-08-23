@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -21,13 +20,6 @@ type path struct {
 }
 
 func main() {
-	var fatalErr error
-	defer func() {
-		if fatalErr != nil {
-			log.Fatalln(fatalErr)
-		}
-	}()
-
 	dest := flag.String("dest", "./archive", "the path to folder backup file is archived")
 	dbPath := flag.String("db", "./db", "the path to db")
 	interval := flag.Duration("interval", 10, "the interval of backup")
@@ -41,31 +33,28 @@ func main() {
 
 	dbSession, err := filedb.Dial(*dbPath)
 	if err != nil {
-		fatalErr = err
+		log.Println(err)
 		return
 	}
 	defer dbSession.Close()
 	paths, err := dbSession.C("paths")
 	if err != nil {
-		fatalErr = err
+		log.Println(err)
 		return
 	}
 
 	paths.ForEach(func(i int, data []byte) bool {
 		var path path
 		if err := json.Unmarshal(data, &path); err != nil {
-			fatalErr = err
+			log.Println(err)
 			return true
 		}
 
 		monitor.Hashs[path.Path] = path.Hash
 		return false
 	})
-	if fatalErr != nil {
-		return
-	}
 	if len(monitor.Hashs) < 1 {
-		fatalErr = errors.New("no paths specified. add paths with backup cmd")
+		log.Println("no paths specified. add paths with backup cmd")
 		return
 	}
 

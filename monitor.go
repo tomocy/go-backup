@@ -12,6 +12,14 @@ type Monitor struct {
 	Dest     string
 }
 
+func NewMonitor(archiver Archiver, dest string) *Monitor {
+	return &Monitor{
+		Hashs:    make(map[string]string),
+		Archiver: archiver,
+		Dest:     dest,
+	}
+}
+
 func (m *Monitor) MonitorAndArchive() (int, error) {
 	backupCnt := 0
 	for path, lastHash := range m.Hashs {
