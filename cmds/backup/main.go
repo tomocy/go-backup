@@ -8,13 +8,6 @@ import (
 )
 
 func main() {
-	var fatalErr error
-	defer func() {
-		if fatalErr != nil {
-			log.Fatal(fatalErr)
-		}
-	}()
-
 	dbPath := flag.String("db", "./backup", "the path to db folder")
 	flag.Parse()
 
@@ -22,7 +15,7 @@ func main() {
 	db.open(*dbPath)
 	defer db.close()
 
-	subCmd := strings.ToLower(flag.Args()[0])
+	subCmd := strings.ToLower(flag.Arg(0))
 	switch subCmd {
 	case "list":
 		listMonitoredFiles(db)
