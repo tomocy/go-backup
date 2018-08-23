@@ -25,11 +25,7 @@ func main() {
 	interval := flag.Duration("interval", 10, "the interval of backup")
 	flag.Parse()
 
-	monitor := &backup.Monitor{
-		Dest:     *dest,
-		Archiver: backup.ZIP,
-		Hashs:    make(map[string]string),
-	}
+	monitor := backup.NewMonitor(backup.ZIP, *dest)
 
 	dbSession, err := filedb.Dial(*dbPath)
 	if err != nil {
