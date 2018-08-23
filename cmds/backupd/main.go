@@ -72,7 +72,7 @@ func main() {
 	check(monitor, paths)
 	signalCh := make(chan os.Signal)
 	signal.Notify(signalCh, syscall.SIGINT)
-	ticker := time.NewTicker(*interval * time.Second)
+	ticker := time.NewTicker(*interval)
 	defer ticker.Stop()
 	for {
 		select {
@@ -87,15 +87,17 @@ func main() {
 }
 
 func check(m *backup.Monitor, col *filedb.C) {
+	log.Println("check backup")
 	backupCnt, err := m.Now()
 	if err != nil {
 		log.Panicf("faild to backup: %s\n", err)
 	}
 	if backupCnt < 1 {
-		log.Println("nothing to be backupped")
+		log.Println("nothing")
 		return
 	}
 
+	log.Printf("%d files archived\n", backupCnt)
 	col.SelectEach(func(_ int, data []byte) (bool, []byte, bool) {
 		var path path
 		if err := json.Unmarshal(data, &path); err != nil {
