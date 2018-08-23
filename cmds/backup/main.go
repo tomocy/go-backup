@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -58,5 +59,23 @@ func main() {
 			fmt.Printf("= %s\n", path)
 			return false
 		})
+	case "add":
+		newPaths := flag.Args()[1:]
+		if len(newPaths) < 1 {
+			fatalErr = errors.New("nothing specified, nothing added")
+			return
+		}
+		for _, newPath := range newPaths {
+			pathJSON := &path{
+				Path: newPath,
+				Hash: "not hashed yet",
+			}
+			if err := paths.InsertJSON(pathJSON); err != nil {
+				fatalErr = err
+				return
+			}
+
+			fmt.Printf("+ %s\n", pathJSON)
+		}
 	}
 }
