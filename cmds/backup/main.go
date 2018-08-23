@@ -50,8 +50,7 @@ func main() {
 	case "list":
 		paths.ForEach(func(i int, data []byte) bool {
 			var path path
-			err := json.Unmarshal(data, &path)
-			if err != nil {
+			if err := json.Unmarshal(data, &path); err != nil {
 				fatalErr = err
 				return true
 			}
