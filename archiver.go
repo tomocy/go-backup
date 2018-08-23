@@ -7,12 +7,16 @@ import (
 	"path/filepath"
 )
 
+var ZIP Archiver
+
+func init() {
+	ZIP = new(zipper)
+}
+
 type Archiver interface {
 	Archive(src, dest string) error
 	Extension() string
 }
-
-var ZIP Archiver = new(zipper)
 
 type zipper struct {
 	writer *zip.Writer
