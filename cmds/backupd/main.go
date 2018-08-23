@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -10,7 +10,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/matryer/filedb"
 	"github.com/tomocy/backup"
 )
 
@@ -27,42 +26,47 @@ func main() {
 
 	monitor := backup.NewMonitor(backup.ZIP, *dest)
 
-	dbSession, err := filedb.Dial(*dbPath)
-	if err != nil {
+	db := newDB()
+	if err := db.open(*dbPath); err != nil {
 		log.Println(err)
 		return
 	}
-	defer dbSession.Close()
-	paths, err := dbSession.C("paths")
-	if err != nil {
+	defer db.close()
+
+	if err := setHashsInMonitor(monitor, db); err != nil {
 		log.Println(err)
 		return
 	}
+	startMonitoring(*interval, monitor, db)
+}
 
-	paths.ForEach(func(i int, data []byte) bool {
-		var path path
-		if err := json.Unmarshal(data, &path); err != nil {
-			log.Println(err)
-			return true
-		}
-
-		monitor.Hashs[path.Path] = path.Hash
-		return false
-	})
-	if len(monitor.Hashs) < 1 {
-		log.Println("no paths specified. add paths with backup cmd")
-		return
+func setHashsInMonitor(monitor *backup.Monitor, db db) error {
+	files, err := db.fileList()
+	if err != nil {
+		return err
+	}
+	if len(files) < 1 {
+		return errors.New("no paths specified. add paths with backup cmd")
 	}
 
-	check(monitor, paths)
+	for _, file := range files {
+		monitor.Hashs[file.Path] = file.Hash
+	}
+
+	return nil
+}
+
+func startMonitoring(interval time.Duration, monitor *backup.Monitor, db db) {
 	signalCh := make(chan os.Signal)
 	signal.Notify(signalCh, syscall.SIGINT)
-	ticker := time.NewTicker(*interval)
+	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
+
+	check(monitor, db)
 	for {
 		select {
 		case <-ticker.C:
-			check(monitor, paths)
+			check(monitor, db)
 		case <-signalCh:
 			fmt.Println()
 			fmt.Println("stopped backupping")
@@ -71,7 +75,7 @@ func main() {
 	}
 }
 
-func check(m *backup.Monitor, col *filedb.C) {
+func check(m *backup.Monitor, db db) {
 	log.Println("check backup")
 	backupCnt, err := m.MonitorAndArchive()
 	if err != nil {
@@ -83,20 +87,5 @@ func check(m *backup.Monitor, col *filedb.C) {
 	}
 
 	log.Printf("%d files archived\n", backupCnt)
-	col.SelectEach(func(_ int, data []byte) (bool, []byte, bool) {
-		var path path
-		if err := json.Unmarshal(data, &path); err != nil {
-			log.Printf("faild to unmarshal json: %s\n", err)
-			return true, data, false
-		}
-
-		path.Hash = m.Hashs[path.Path]
-		newData, err := json.Marshal(path)
-		if err != nil {
-			log.Printf("faild to marshal json: %s\n", err)
-			return true, data, false
-		}
-
-		return true, newData, false
-	})
+	db.updateFilesIfUpdated(m.Hashs)
 }
