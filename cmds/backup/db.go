@@ -22,6 +22,12 @@ type fileDB struct {
 	session    *filedb.DB
 }
 
+func newFileDB() *fileDB {
+	return &fileDB{
+		columnName: "monitored_files",
+	}
+}
+
 func (db *fileDB) open(url string) error {
 	var err error
 	db.session, err = filedb.Dial(url)
